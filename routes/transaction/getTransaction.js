@@ -3,6 +3,7 @@ const app = express.Router()
 const db = require('../../controller/dbController')
 
 app.get('/transaction', (req, res) => {
-    res.send(db.get('transaction'))
+    const result = db.get('transaction', req.query)
+    res.send(result)
 })
 module.exports = app
