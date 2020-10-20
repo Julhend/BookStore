@@ -40,13 +40,13 @@ let db;
   }
 })()
 
-function validator(body, model) {
-  let result = {}
-  let modelCounter = model.length
+function shapeObject(input, model) {
+  const result = {}
+  const modelCounter = model.length
   let counter = 0
-  for (const key in body) {
-    if (model.includes(key)) {
-      result[key] = body[key]
+  for (const namaKey in input) {
+    if (model.includes(namaKey)) {
+      result[namaKey] = input[namaKey]
       counter++
     }
   }
@@ -62,18 +62,17 @@ function validator(body, model) {
  * @returns {Object} data
  */
 
-function get(tableName, id) {
-  const parsedId = parseInt(id)
-  if (parsedId) {
+function get(tableName, query) {
+  if (query && Object.keys(query).length) {
     return db
       .get(tableName)
-      .find({ id: parsedId })
-      .value()
-  } else {
-    return db
-      .get(tableName)
+      .find(query)
       .value()
   }
+  return db
+    .get(tableName)
+    .value()
+
 }
 
 /**
@@ -82,32 +81,32 @@ function get(tableName, id) {
  * @param {Object} body inserted data
  */
 function add(tableName, body) {
-  let parsedBody
+  let shapedBody
   if (tableName == 'user') {
-    parsedBody = validator(body, userModel)
+    shapedBody = shapeObject(body, userModel)
   }
   if (tableName == 'admin') {
-    parsedBody = validator(body, adminModel)
+    shapedBody = shapeObject(body, adminModel)
   }
   if (tableName == 'customer') {
-    parsedBody = validator(body, customerModel)
+    shapedBody = shapeObject(body, customerModel)
   }
   if (tableName == 'bookData') {
-    parsedBody = validator(body, bookDataModel)
+    shapedBody = shapeObject(body, bookDataModel)
   }
   if (tableName == 'supplier') {
-    parsedBody = validator(body, supplierModel)
+    shapedBody = shapeObject(body, supplierModel)
   }
   if (tableName == 'transaction') {
-    parsedBody = validator(body, transactionModel)
+    shapedBody = shapeObject(body, transactionModel)
   }
 
 
-  if (!parsedBody) {
+  if (!shapedBody) {
     return false
   }
   return db.get(tableName)
-    .push(body)
+    .push(shapedBody)
     .write()
 }
 
@@ -136,11 +135,17 @@ function remove(tableName, id) {
     .remove({ id: parsedId })
     .write()
 }
+function removeAll(tableName) {
+  db.get(tableName)
+    .remove({})
+    .write()
+}
 
 module.exports = {
   get,
   add,
   edit,
   remove,
-  validator
+  removeAll
+
 }
